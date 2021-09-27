@@ -29,7 +29,7 @@ function paygate_payweb_on_plugin_activation()
     $current_file = plugin_basename(__FILE__);
     $new = 'paygate-payweb-for-woocommerce';
     $new_file = str_replace($current, $new, $current_file);
-    if($current === 'woocommerce-gateway-paygate-pw3') {
+    if($current !== $new) {
         deactivate_plugins($current_file);
         rename(WP_PLUGIN_DIR . '/' . $current, WP_PLUGIN_DIR . '/' . $new);
         activate_plugin($new_file);
