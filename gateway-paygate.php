@@ -3,36 +3,35 @@
  * Plugin Name: PayGate PayWeb3 plugin for WooCommerce
  * Plugin URI: https://wordpress.org/plugins/paygate-payweb-for-woocommerce/
  * Description: Accept payments for WooCommerce using PayGate's PayWeb3 service
- * Version: 1.4.2
- * Tested: 5.7.2
+ * Version: 1.4.4
+ * Requires at least: 4.4
+ * Tested up to: 5.8
+ * WC tested up to: 5.6.0
+ * WC requires at least: 4.9
+ *
  * Author: PayGate (Pty) Ltd
  * Author URI: https://www.paygate.co.za/
  * Developer: App Inlet (Pty) Ltd
  * Developer URI: https://www.appinlet.com/
  *
- * WC requires at least: 3.0
- * WC tested up to: 5.3
- *
  * Copyright: © 2021 PayGate (Pty) Ltd.
  * License: GNU General Public License v3.0
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
+ * Text Domain: paygate-payweb-for-woocommerce
  */
 
 add_action('plugins_loaded', 'woocommerce_paygate_init', 0);
-add_filter('upgrader_post_install', 'paygate_payweb_on_plugin_activation', 10, 3);
 
+register_activation_hook(__FILE__, 'paygate_payweb_on_plugin_activation');
 function paygate_payweb_on_plugin_activation()
 {
-    global $wp_filesystem;
-
-    // Check to see if this plugin is in the old or new directory
     $current = plugin_basename(__DIR__);
-    $new = 'paygate-payweb-for-woocommerce';
     $current_file = plugin_basename(__FILE__);
+    $new = 'paygate-payweb-for-woocommerce';
     $new_file = str_replace($current, $new, $current_file);
     if($current === 'woocommerce-gateway-paygate-pw3') {
-        deactivate_plugins(WP_PLUGIN_DIR . '/' . $current_file);
-        $wp_filesystem->move(WP_PLUGIN_DIR . '/' . $current, WP_PLUGIN_DIR . '/' . $new);
+        deactivate_plugins($current_file);
+        rename(WP_PLUGIN_DIR . '/' . $current, WP_PLUGIN_DIR . '/' . $new);
         activate_plugin($new_file);
     }
 }
@@ -46,6 +45,10 @@ function paygate_payweb_on_plugin_activation()
 
 function woocommerce_paygate_init()
 {
+    if ( !in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
+        return;
+    }
+
     if ( ! class_exists('WC_Payment_Gateway')) {
         return;
     }
@@ -122,3 +125,26 @@ function woocommerce_add_paygate_gateway($methods)
 
     return $methods;
 } // End woocommerce_add_paygate_gateway()
+
+function woocommerce_paygate_registered()
+{
+    if(!paygate_wc_is_installed()) {
+        add_action('admin_notices', 'addInvalidPluginNoticePG');
+        deactivate_plugins(plugin_basename(__FILE__));
+    }
+}
+
+function paygate_wc_is_installed()
+{
+    return in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) );
+}
+
+function addInvalidPluginNoticePG()
+{
+    echo <<<NOTICE
+<div id="message" class="error">
+<p>WooCommerce is required for this plugin</p>
+</div>
+NOTICE
+    ;
+}
