@@ -23,16 +23,16 @@
 add_action('plugins_loaded', 'woocommerce_paygate_init', 0);
 
 register_activation_hook(__FILE__, 'paygate_payweb_on_plugin_activation');
+register_deactivation_hook(__FILE__, 'paygate_payweb_on_plugin_activation');
 function paygate_payweb_on_plugin_activation()
 {
     $current = plugin_basename(__DIR__);
     $current_file = plugin_basename(__FILE__);
     $new = 'paygate-payweb-for-woocommerce';
-    $new_file = str_replace($current, $new, $current_file);
+    $new_file = $new . '/gateway-paygate.php';
     if($current !== $new) {
         deactivate_plugins($current_file);
         rename(WP_PLUGIN_DIR . '/' . $current, WP_PLUGIN_DIR . '/' . $new);
-        activate_plugin($new_file);
     }
 }
 
