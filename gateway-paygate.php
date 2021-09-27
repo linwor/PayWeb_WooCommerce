@@ -23,7 +23,6 @@
 add_action('plugins_loaded', 'woocommerce_paygate_init', 0);
 
 register_activation_hook(__FILE__, 'paygate_payweb_on_plugin_activation');
-register_deactivation_hook(__FILE__, 'paygate_payweb_on_plugin_activation');
 function paygate_payweb_on_plugin_activation()
 {
     $current = plugin_basename(__DIR__);
@@ -45,6 +44,8 @@ function paygate_payweb_on_plugin_activation()
 
 function woocommerce_paygate_init()
 {
+    paygate_payweb_on_plugin_activation();
+
     if ( !in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
         return;
     }
